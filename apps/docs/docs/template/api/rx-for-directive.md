@@ -248,13 +248,9 @@ an `Observable<RxStrategyNames>` or [`RxStrategyNames`](https://github.com/rx-an
 The default value for strategy is [`normal`](../../cdk/render-strategies/strategies/concurrent-strategies.md).
 
 ```html
-<ng-container *rxFor="let item of items; strategy: strategy">
-  {{ item }}
-</ng-container>
+<ng-container *rxFor="let item of items; strategy: strategy"> {{ item }} </ng-container>
 
-<ng-container *rxFor="let item of items; strategy: strategy$">
-  {{ item }}
-</ng-container>
+<ng-container *rxFor="let item of items; strategy: strategy$"> {{ item }} </ng-container>
 ```
 
 ```ts
@@ -270,6 +266,41 @@ export class AppComponent {
 Learn more about the general concept of [`RenderStrategies`](../../cdk/render-strategies) especially the section [usage-in-the-template](../../cdk/render-strategies#usage-in-the-template) if you need more clarity.
 
 #### Local strategies and view/content queries (`parent`)
+
+:::warning
+
+**Deprecation warning**
+
+The `parent` flag being true is not needed anymore with the new [signal based view queries](https://angular.io/guide/signal-queries).
+
+The flag itself is deprecated now and will be removed in future versions.
+
+However, for the time being: if you are already using the signal queries, you definitely want to set the `parent` flag to be false. We highly recommend doing so, as it reduces the amount of
+change detection cycles significantly, thus improving the runtime performance of your apps.
+
+You can do so by providing a custom `RxRenderStrategiesConfig`, see the following example:
+
+```typescript
+// import
+import { RxRenderStrategiesConfig, RX_RENDER_STRATEGIES_CONFIG } from '@rx-angular/cdk/render-strategies';
+
+// create configuration with parent flag to be false
+const rxaConfig: RxRenderStrategiesConfig<string> = {
+  parent: false,
+};
+
+// provide it, in best case on root level
+{
+  providers: [
+    {
+      provide: RX_RENDER_STRATEGIES_CONFIG,
+      useValue: rxaConfig,
+    },
+  ];
+}
+```
+
+:::
 
 When local rendering strategies are used, we need to treat view and content queries in a
 special way.
@@ -364,13 +395,7 @@ The result of the `renderCallback` will contain the currently rendered set of it
   selector: 'app-root',
   template: `
     <app-list-component>
-      <app-list-item
-        *rxFor="
-          let item of items$;
-          trackBy: trackItem;
-          renderCallback: itemsRendered
-        "
-      >
+      <app-list-item *rxFor="let item of items$; trackBy: trackItem; renderCallback: itemsRendered">
         <div>{{ item.name }}</div>
       </app-list-item>
     </app-list-component>
@@ -425,13 +450,7 @@ For more details read about [NgZone optimizations](../performance-issues/ngzone-
 ```ts
 @Component({
   selector: 'app-root',
-  template: `
-    <div
-      *rxFor="let bgColor; in: bgColor$; patchZone: false"
-      (mousemove)="calcBgColor($event)"
-      [style.background]="bgColor"
-    ></div>
-  `,
+  template: ` <div *rxFor="let bgColor; in: bgColor$; patchZone: false" (mousemove)="calcBgColor($event)" [style.background]="bgColor"></div> `,
 })
 export class AppComponent {
   // As the part of the template where this function is used as event listener callback

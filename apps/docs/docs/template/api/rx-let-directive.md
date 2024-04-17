@@ -172,15 +172,12 @@ The following context variables are available for each template:
 You can use the as like this:
 
 ```html
-<ng-container
-  *rxLet="observableNumber$; let n; let s = suspense; let e = error, let c = complete"
->
+<ng-container *rxLet="observableNumber$; let n; let s = suspense; let e = error, let c = complete">
   {{ s && 'No value arrived so far' }}
 
   <app-number [number]="n"></app-number>
 
-  There is an error: {{ e ? e.message : 'No Error' }} Observable is completed:
-  {{c ? 'Yes' : 'No'}}
+  There is an error: {{ e ? e.message : 'No Error' }} Observable is completed: {{c ? 'Yes' : 'No'}}
 </ng-container>
 ```
 
@@ -226,9 +223,7 @@ e.g. from the complete template back to the value display
   selector: 'app-root',
   template: `
     <button (click)="nextTrigger$.next()">show value</button>
-    <ng-container
-      *rxLet="num$; let n; complete: complete; nextTrg: nextTrigger$"
-    >
+    <ng-container *rxLet="num$; let n; complete: complete; nextTrg: nextTrigger$">
       {{ n }}
     </ng-container>
     <ng-template #complete>✔</ng-template>
@@ -274,9 +269,7 @@ e.g. from the complete template back to the value display
 @Component({
   selector: 'app-root',
   template: `
-    <ng-container
-      *rxLet="num$; let n; complete: complete; completeTrg: completeTrigger$"
-    >
+    <ng-container *rxLet="num$; let n; complete: complete; completeTrg: completeTrigger$">
       {{ n }}
     </ng-container>
     <ng-template #complete>✔</ng-template>
@@ -300,15 +293,7 @@ e.g. from the complete template back to the value display
   selector: 'app-root',
   template: `
     <input (input)="search($event.target.value)" />
-    <ng-container
-      *rxLet="
-        num$;
-        let n;
-        let n;
-        suspense: suspense;
-        suspenseTrg: suspenseTrigger$
-      "
-    >
+    <ng-container *rxLet="num$; let n; let n; suspense: suspense; suspenseTrg: suspenseTrigger$">
       {{ n }}
     </ng-container>
     <ng-template #suspense>loading...</ng-template>
@@ -337,9 +322,7 @@ in a convenient way.
   selector: 'app-root',
   template: `
     <input (input)="search($event.target.value)" />
-    <ng-container
-      *rxLet="num$; let n; suspense: suspense; contextTrg: contextTrg$"
-    >
+    <ng-container *rxLet="num$; let n; suspense: suspense; contextTrg: contextTrg$">
       {{ n }}
     </ng-container>
     <ng-template #suspense>loading...</ng-template>
@@ -368,13 +351,9 @@ an `Observable<RxStrategyNames>` or [`RxStrategyNames`](https://github.com/rx-an
 The default value for strategy is [`normal`](../../cdk/render-strategies/strategies/concurrent-strategies.md#normal).
 
 ```html
-<ng-container *rxLet="item$; let item; strategy: strategy">
-  {{ item }}
-</ng-container>
+<ng-container *rxLet="item$; let item; strategy: strategy"> {{ item }} </ng-container>
 
-<ng-container *rxFor="item$; let item; strategy: strategy$">
-  {{ item }}
-</ng-container>
+<ng-container *rxFor="item$; let item; strategy: strategy$"> {{ item }} </ng-container>
 ```
 
 ```ts
@@ -390,6 +369,41 @@ export class AppComponent {
 Learn more about the general concept of [`RenderStrategies`](../../cdk/render-strategies) especially the section [usage-in-the-template](../../cdk/render-strategies#usage-in-the-template) if you need more clarity.
 
 #### Local strategies and view/content queries (`parent`)
+
+:::warning
+
+**Deprecation warning**
+
+The `parent` flag being true is not needed anymore with the new [signal based view queries](https://angular.io/guide/signal-queries).
+
+The flag itself is deprecated now and will be removed in future versions.
+
+However, for the time being: if you are already using the signal queries, you definitely want to set the `parent` flag to be false. We highly recommend doing so, as it reduces the amount of
+change detection cycles significantly, thus improving the runtime performance of your apps.
+
+You can do so by providing a custom `RxRenderStrategiesConfig`, see the following example:
+
+```typescript
+// import
+import { RxRenderStrategiesConfig, RX_RENDER_STRATEGIES_CONFIG } from '@rx-angular/cdk/render-strategies';
+
+// create configuration with parent flag to be false
+const rxaConfig: RxRenderStrategiesConfig<string> = {
+  parent: false,
+};
+
+// provide it, in best case on root level
+{
+  providers: [
+    {
+      provide: RX_RENDER_STRATEGIES_CONFIG,
+      useValue: rxaConfig,
+    },
+  ];
+}
+```
+
+:::
 
 Structural directives maintain `EmbeddedViews` within a components' template.
 Depending on the bound value as well as the configured `RxRenderStrategy`, updates processed by the
@@ -466,13 +480,7 @@ For more details read about [NgZone optimizations](../performance-issues/ngzone-
 ```ts
 @Component({
   selector: 'app-root',
-  template: `
-    <div
-      *rxLet="bgColor$; let bgColor; patchZone: false"
-      (mousemove)="calcBgColor($event)"
-      [style.background]="bgColor"
-    ></div>
-  `,
+  template: ` <div *rxLet="bgColor$; let bgColor; patchZone: false" (mousemove)="calcBgColor($event)" [style.background]="bgColor"></div> `,
 })
 export class AppComponent {
   // As the part of the template where this function is used as event listener callback
@@ -491,12 +499,7 @@ This helps to exclude all side effects from special render strategies.
 ### Basic Setup
 
 ```typescript
-import {
-  ChangeDetectorRef,
-  Component,
-  TemplateRef,
-  ViewContainerRef,
-} from '@angular/core';
+import { ChangeDetectorRef, Component, TemplateRef, ViewContainerRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { RX_RENDER_STRATEGIES_CONFIG } from '@rx-angular/cdk/render-strategies';
 import { RxLet } from '@rx-angular/template/let';

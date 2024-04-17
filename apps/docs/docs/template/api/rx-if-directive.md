@@ -171,9 +171,7 @@ You can use them like this:
 **Context Variables on then template**
 
 ```html
-<ng-container
-  *rxIf="customer$; let customer; let s = suspense; let e = error, let c = complete"
->
+<ng-container *rxIf="customer$; let customer; let s = suspense; let e = error, let c = complete">
   <loader *ngIf="s"></loader>
   <error *ngIf="e"></error>
   <complete *ngIf="c"></complete>
@@ -185,9 +183,7 @@ You can use them like this:
 **Context Variables on else template**
 
 ```html
-<ng-container
-  *rxIf="show$; else: nope; let s = suspense; let e = error, let c = complete"
->
+<ng-container *rxIf="show$; else: nope; let s = suspense; let e = error, let c = complete">
   <loader *ngIf="s"></loader>
   <error *ngIf="e"></error>
   <complete *ngIf="c"></complete>
@@ -321,9 +317,7 @@ e.g. from the complete template back to the value display
 @Component({
   selector: 'app-root',
   template: `
-    <ng-container
-      *rxIf="show$; complete: complete; completeTrg: completeTrigger$"
-    >
+    <ng-container *rxIf="show$; complete: complete; completeTrg: completeTrigger$">
       <item></item>
     </ng-container>
     <ng-template #complete>✔</ng-template>
@@ -345,9 +339,7 @@ e.g. from the complete template back to the value display
   selector: 'app-root',
   template: `
     <input (input)="search($event.target.value)" />
-    <ng-container
-      *rxIf="show$; suspense: suspense; suspenseTrg: suspenseTrigger$"
-    >
+    <ng-container *rxIf="show$; suspense: suspense; suspenseTrg: suspenseTrigger$">
       <list></list>
     </ng-container>
     <ng-template #suspense>loading...</ng-template>
@@ -423,6 +415,41 @@ Learn more about the general concept of [`RenderStrategies`](../../cdk/render-st
 
 #### Local strategies and view/content queries (`parent`)
 
+:::warning
+
+**Deprecation warning**
+
+The `parent` flag being true is not needed anymore with the new [signal based view queries](https://angular.io/guide/signal-queries).
+
+The flag itself is deprecated now and will be removed in future versions.
+
+However, for the time being: if you are already using the signal queries, you definitely want to set the `parent` flag to be false. We highly recommend doing so, as it reduces the amount of
+change detection cycles significantly, thus improving the runtime performance of your apps.
+
+You can do so by providing a custom `RxRenderStrategiesConfig`, see the following example:
+
+```typescript
+// import
+import { RxRenderStrategiesConfig, RX_RENDER_STRATEGIES_CONFIG } from '@rx-angular/cdk/render-strategies';
+
+// create configuration with parent flag to be false
+const rxaConfig: RxRenderStrategiesConfig<string> = {
+  parent: false,
+};
+
+// provide it, in best case on root level
+{
+  providers: [
+    {
+      provide: RX_RENDER_STRATEGIES_CONFIG,
+      useValue: rxaConfig,
+    },
+  ];
+}
+```
+
+:::
+
 Structural directives maintain `EmbeddedViews` within a components' template.
 Depending on the bound value as well as the configured `RxRenderStrategy`, updates processed by the
 `@rx-angular/template` directives can be asynchronous.
@@ -494,9 +521,7 @@ For more details read about [NgZone optimizations](../performance-issues/ngzone-
 ```ts
 @Component({
   selector: 'app-root',
-  template: `
-    <div *rxIf="enabled$; patchZone: false" (drag)="itemDrag($event)"></div>
-  `,
+  template: ` <div *rxIf="enabled$; patchZone: false" (drag)="itemDrag($event)"></div> `,
 })
 export class AppComponent {
   enabled$ = state.select('enabled');
@@ -514,12 +539,7 @@ This helps to exclude all side effects from special render strategies.
 ### Basic Setup
 
 ```typescript
-import {
-  ChangeDetectorRef,
-  Component,
-  TemplateRef,
-  ViewContainerRef,
-} from '@angular/core';
+import { ChangeDetectorRef, Component, TemplateRef, ViewContainerRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { RX_RENDER_STRATEGIES_CONFIG } from '@rx-angular/cdk/render-strategies';
 import { RxIf } from '@rx-angular/template/if';
